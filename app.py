@@ -6,7 +6,7 @@ import json
 st.set_page_config(page_title="Startup Battle-Bot", page_icon="🚀", layout="wide")
 
 # IMPORTANT: Get key from Streamlit Secrets or paste it here
-api_key = st.secrets["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.secrets else "YOUR_API_KEY_HERE"
+api_key = st.secrets["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.secrets else "AIzaSyCyAKlibuvXiMfvuCF82LofbY4GV1DWGso"
 genai.configure(api_key=api_key)
 
 # 2. The Winner System Prompt
