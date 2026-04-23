@@ -8,8 +8,8 @@ st.set_page_config(page_title="Startup Battle-Bot", page_icon="🚀", layout="wi
 try:
     api_key = st.secrets["GOOGLE_API_KEY"]
     genai.configure(api_key=api_key)
-except:
-    st.error("🚨"AIzaSyAKlibuvXiMfvuCF82LofbY4GV1DWGso")
+except KeyError:
+    st.error("GOOGLE_API_KEY is missing in Streamlit Secrets.")
     st.stop()
 
 # 2. The Winner System Prompt
