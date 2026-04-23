@@ -20,9 +20,6 @@ You are a brilliant Venture Capitalist. Your goal is to help users build their s
 3. If the user asks for Competitors, Branding, or a Pitch, be very detailed.
 """
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
 def get_reply(user_text):
     response = client.models.generate_content(
         model="gemini-2.5-flash",
@@ -32,6 +29,12 @@ def get_reply(user_text):
         )
     )
     return response.text
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+st.title("🚀 Startup Battle-Bot")
+st.caption("The AI that builds your business while it roasts it.")
 
 with st.sidebar:
     st.header("🛠️ Startup Tool-Kit")
@@ -60,9 +63,6 @@ with st.sidebar:
             )
             st.subheader("Final Pitch Deck")
             st.warning(text)
-
-st.title("🚀 Startup Battle-Bot")
-st.caption("The AI that builds your business while it roasts it.")
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
