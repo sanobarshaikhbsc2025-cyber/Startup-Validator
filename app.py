@@ -1,18 +1,14 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. Configuration
 st.set_page_config(page_title="Startup Battle-Bot", page_icon="🚀", layout="wide")
 
-# Secure API key from Streamlit Secrets ONLY (no fallback!)
-try:
-    api_key = st.secrets["GOOGLE_API_KEY"]
-    genai.configure(api_key=api_key)
-except KeyError:
+if "GOOGLE_API_KEY" not in st.secrets:
     st.error("GOOGLE_API_KEY is missing in Streamlit Secrets.")
     st.stop()
 
-# 2. The Winner System Prompt
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+
 SYSTEM_PROMPT = """
 You are a brilliant Venture Capitalist. Your goal is to help users build their startup.
 1. Be sharp and professional.
@@ -20,41 +16,44 @@ You are a brilliant Venture Capitalist. Your goal is to help users build their s
 3. If the user asks for Competitors, Branding, or a Pitch, be very detailed.
 """
 
-# 3. Initialize Session State (Memory)
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
 if "chat_session" not in st.session_state:
-    # FIXED: Use current model name "gemini-1.5-flash"
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=SYSTEM_PROMPT)
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",
+        system_instruction=SYSTEM_PROMPT
+    )
     st.session_state.chat_session = model.start_chat(history=[])
 
-# 4. Sidebar: The "Pro" Tools
 with st.sidebar:
     st.header("🛠️ Startup Tool-Kit")
     st.write("Use these after chatting with the AI")
-    
-    # Feature 1: Competitor Research
+
     if st.button("🔍 Find My Rivals"):
         with st.spinner("Analyzing market..."):
-            res = st.session_state.chat_session.send_message("Identify 3 potential real-world competitors for this business idea and explain their strengths/weaknesses.")
+            res = st.session_state.chat_session.send_message(
+                "Identify 3 potential real-world competitors for this business idea and explain their strengths and weaknesses."
+            )
             st.subheader("Competitor Analysis")
             st.info(res.text)
 
-    # Feature 2: Brand Identity
     if st.button("🎨 Design My Brand"):
         with st.spinner("Creating brand board..."):
-            res = st.session_state.chat_session.send_message("Suggest a professional Brand Name, a Color Palette (with Hex codes), Logo description, and a catchy Tagline for this startup.")
+            res = st.session_state.chat_session.send_message(
+                "Suggest a professional Brand Name, a Color Palette with hex codes, a logo concept, and a catchy tagline for this startup."
+            )
             st.subheader("Brand Identity")
             st.success(res.text)
 
-    # Feature 3: Pitch Deck Exporter
     if st.button("📊 Export Pitch Deck"):
         with st.spinner("Synthesizing data..."):
-            res = st.session_state.chat_session.send_message("Convert our entire chat into a 5-point Investor Pitch Deck: 1. Problem, 2. Solution, 3. Market Size, 4. Revenue Model, 5. The Ask. Format as markdown.")
+            res = st.session_state.chat_session.send_message(
+                "Convert our entire chat into a 5-point investor pitch deck: 1. Problem, 2. Solution, 3. Market Size, 4. Revenue Model, 5. The Ask. Format as markdown."
+            )
             st.subheader("Final Pitch Deck")
             st.warning(res.text)
 
-# 5. Main Chat Interface
 st.title("🚀 Startup Battle-Bot")
 st.caption("The AI that builds your business while it roasts it.")
 
@@ -62,7 +61,8 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Explain your soap business or cat cafe..."):
+prompt = st.chat_input("Explain your soap business or cat cafe...")
+if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -70,6 +70,5 @@ if prompt := st.chat_input("Explain your soap business or cat cafe..."):
     with st.chat_message("assistant"):
         with st.spinner("AI is thinking..."):
             response = st.session_state.chat_session.send_message(prompt)
-            full_text = response.text
-        st.markdown(full_text)
-        st.session_state.messages.append({"role": "assistant", "content": full_text})
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
