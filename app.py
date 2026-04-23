@@ -1,13 +1,16 @@
 import streamlit as st
 import google.generativeai as genai
-import json
 
 # 1. Configuration
 st.set_page_config(page_title="Startup Battle-Bot", page_icon="🚀", layout="wide")
 
-# IMPORTANT: Get key from Streamlit Secrets or paste it here
-api_key = st.secrets["GOOGLE_API_KEY"] if "GOOGLE_API_KEY" in st.secrets else "AIzaSyCyAKlibuvXiMfvuCF82LofbY4GV1DWGso"
-genai.configure(api_key=api_key)
+# Secure API key from Streamlit Secrets ONLY (no fallback!)
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+    genai.configure(api_key=api_key)
+except:
+    st.error("🚨"AIzaSyAKlibuvXiMfvuCF82LofbY4GV1DWGso")
+    st.stop()
 
 # 2. The Winner System Prompt
 SYSTEM_PROMPT = """
@@ -21,7 +24,8 @@ You are a brilliant Venture Capitalist. Your goal is to help users build their s
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "chat_session" not in st.session_state:
-    model = genai.GenerativeModel(model_name="gemini-pro", system_instruction=SYSTEM_PROMPT)
+    # FIXED: Use current model name "gemini-1.5-flash"
+    model = genai.GenerativeModel(model_name="gemini-1.5-flash", system_instruction=SYSTEM_PROMPT)
     st.session_state.chat_session = model.start_chat(history=[])
 
 # 4. Sidebar: The "Pro" Tools
@@ -32,21 +36,21 @@ with st.sidebar:
     # Feature 1: Competitor Research
     if st.button("🔍 Find My Rivals"):
         with st.spinner("Analyzing market..."):
-            res = st.session_state.chat_session.send_message("Identify 3 potential real-world competitors for this business idea and explain their strength.")
+            res = st.session_state.chat_session.send_message("Identify 3 potential real-world competitors for this business idea and explain their strengths/weaknesses.")
             st.subheader("Competitor Analysis")
             st.info(res.text)
 
     # Feature 2: Brand Identity
     if st.button("🎨 Design My Brand"):
         with st.spinner("Creating brand board..."):
-            res = st.session_state.chat_session.send_message("Suggest a professional Brand Name, a Color Palette (with Hex codes), and a catchy Tagline for this startup.")
+            res = st.session_state.chat_session.send_message("Suggest a professional Brand Name, a Color Palette (with Hex codes), Logo description, and a catchy Tagline for this startup.")
             st.subheader("Brand Identity")
             st.success(res.text)
 
     # Feature 3: Pitch Deck Exporter
     if st.button("📊 Export Pitch Deck"):
         with st.spinner("Synthesizing data..."):
-            res = st.session_state.chat_session.send_message("Convert our entire chat into a 5-point Investor Pitch Deck: 1. Problem, 2. Solution, 3. Market Size, 4. Revenue Model, 5. The Ask.")
+            res = st.session_state.chat_session.send_message("Convert our entire chat into a 5-point Investor Pitch Deck: 1. Problem, 2. Solution, 3. Market Size, 4. Revenue Model, 5. The Ask. Format as markdown.")
             st.subheader("Final Pitch Deck")
             st.warning(res.text)
 
@@ -64,6 +68,8 @@ if prompt := st.chat_input("Explain your soap business or cat cafe..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        response = st.session_state.chat_session.send_message(prompt)
-        st.markdown(response.text)
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
+        with st.spinner("AI is thinking..."):
+            response = st.session_state.chat_session.send_message(prompt)
+            full_text = response.text
+        st.markdown(full_text)
+        st.session_state.messages.append({"role": "assistant", "content": full_text})
