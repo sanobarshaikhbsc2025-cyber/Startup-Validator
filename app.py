@@ -1,5 +1,6 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 st.set_page_config(page_title="Startup Battle-Bot", page_icon="🚀", layout="wide")
 
@@ -7,7 +8,10 @@ if "GOOGLE_API_KEY" not in st.secrets:
     st.error("GOOGLE_API_KEY is missing in Streamlit Secrets.")
     st.stop()
 
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+client = genai.Client(
+    api_key=st.secrets["GOOGLE_API_KEY"],
+    http_options=types.HttpOptions(api_version="v1")
+)
 
 SYSTEM_PROMPT = """
 You are a brilliant Venture Capitalist. Your goal is to help users build their startup.
@@ -20,11 +24,10 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "chat_session" not in st.session_state:
-    model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        system_instruction=SYSTEM_PROMPT
+    st.session_state.chat_session = client.chats.create(
+        model="gemini-2.5-flash",
+        config=types.GenerateContentConfig(system_instruction=SYSTEM_PROMPT)
     )
-    st.session_state.chat_session = model.start_chat(history=[])
 
 with st.sidebar:
     st.header("🛠️ Startup Tool-Kit")
